@@ -76,14 +76,13 @@ Width,Height = 500,600
 Wave = 1
 NextwaveTimer = 0
 EnemyNum = 2
-EnemySpawnTimer = 2.8
+EnemySpawnTimer = 0
+EnemyEv = 3.8
 Alive = True
 clock = pygame.time.Clock()
 Font1 = pygame.font.Font("CosmicAlien-V4Ax.ttf",25)
-Enemy_Event = pygame.USEREVENT
-pygame.time.set_timer(Enemy_Event,EnemySpawnTimer*1000)
-EnemyLaserShoot = pygame.USEREVENT + 1
-pygame.time.set_timer(EnemyLaserShoot,EnemySpawnTimer*1200)
+EnemyLaserShoot = pygame.USEREVENT
+pygame.time.set_timer(EnemyLaserShoot,3*1200)
 
 window = pygame.display.set_mode((Width,Height))
 pygame.display.set_caption("Space Invader")
@@ -125,10 +124,11 @@ MainShip = Player(2.7,PlayerImage)
 Enemys = [Enemy(1.15,random.choice(Ship_list)),Enemy(1.15,random.choice(Ship_list))]
 
 def reset_game():
-    global EnemySpawnTimer,Wave,NextwaveTimer,Alive
+    global EnemySpawnTimer,Wave,NextwaveTimer,Alive,EnemyEv
     MainShip.__init__(2.7,PlayerImage)
     EnemySpawnTimer = 0
     Wave = 1
+    EnemyEv = 3.75
     NextwaveTimer = 0
     Enemys.clear()
     Alive = True
@@ -144,8 +144,8 @@ def display_text():
     window.blit(WaveText,(0,30))
     window.blit(Score,(0,0))
     if not Alive:
-        Over = Font1.render("Gaveover",True,(255,0,0))
-        window.blit(Over,(Width/2-28,Height/2-28))
+        Over = Font1.render("Gameover Trash",True,(255,0,0))
+        window.blit(Over,(Width/2-38,Height/2-28))
 
 def MakeEnemy(Num):
     for _ in range(1,Num+1):
@@ -199,6 +199,11 @@ def ShipStuff():
 while True:
     clock.tick(120)
     if Alive:
+        EnemySpawnTimer +=1
+        if EnemySpawnTimer >= 120*(EnemyEv/2):
+            EnemySpawnTimer = 0
+            MakeEnemy(EnemyNum)
+            print(EnemyEv)
         MainShip.Timer += 1
         if MainShip.Timer >= 120*(1/2):
             MainShip.Timer = 0
@@ -206,7 +211,7 @@ while True:
         NextwaveTimer +=1
         if NextwaveTimer >= 120*(25/2):
             Wave += 1
-            EnemySpawnTimer -= 0.25
+            EnemyEv -= 0.2
             NextwaveTimer = 0
     # Getting events        
     for event in pygame.event.get():
@@ -215,8 +220,6 @@ while True:
         if event.type == pygame.KEYUP:
             if event.key == 32 and not Alive:
                 reset_game()
-        if event.type == Enemy_Event and Alive:
-            MakeEnemy(EnemyNum)
         if event.type == EnemyLaserShoot and Alive:
             ShootEnemyLaser()
 
@@ -234,5 +237,6 @@ while True:
     if Alive:
         MoveEnemyLaser()
         ShipStuff()
+        
     display_text()
     pygame.display.update()
